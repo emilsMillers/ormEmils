@@ -16,6 +16,8 @@ import java.util.Set;
 @Table(name = "PELICULA")
 public class Pelicula {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String id;
     private String titulo;
     private String director;
     private String genero;
@@ -35,6 +37,14 @@ public class Pelicula {
         this.protagonista1 = protagonista1;
         this.protagonista2 = protagonista2;
         this.protagonista3 = protagonista3;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTitulo() {
