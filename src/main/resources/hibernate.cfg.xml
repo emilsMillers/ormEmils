@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+    <!-- Hibernate Configuration File -->
+    
+    <session-factory>
+
+        <property name="connection.driver_class">org.h2.Driver</property>
+        <property name="connection.url">jdbc:h2:./Cines</property>
+        <property name="connection.username">sa</property>
+        <!-- Coloca la contraseña correcta aquí -->
+        <property name="connection.password"></property>
+        
+        <!-- Usa el dialecto correcto para H2 -->
+        <property name="hibernate.dialect">org.hibernate.dialect.H2Dialect</property>
+        
+        <property name="hibernate.default_schema">PUBLIC</property>
+        
+        <property name="show_sql">true</property>
+
+        <property name="hbm2ddl.auto">update</property>
+        <mapping class="entidades.Cine"/>
+        <mapping class="entidades.Tarifa"/>
+        <mapping class="entidades.Pase"/>
+        <mapping class="entidades.Pelicula"/>
+  
+    </session-factory>
+
+</hibernate-configuration>
+
