@@ -22,11 +22,11 @@
         
         <property name="show_sql">true</property>
 
-        <property name="hbm2ddl.auto">update</property>
+        <property name="hbm2ddl.auto">create-drop</property>
         <mapping class="entidades.Cine"/>
+        <mapping class="entidades.Pelicula"/>
         <mapping class="entidades.Tarifa"/>
         <mapping class="entidades.Pase"/>
-        <mapping class="entidades.Pelicula"/>
   
     </session-factory>
 
