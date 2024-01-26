@@ -86,6 +86,8 @@ public class Cine {
         this.numero = numero;
         this.telefono = telefono;
     }
+    
+    public Cine(){}
 
     
 }

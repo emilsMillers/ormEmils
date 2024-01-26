@@ -15,7 +15,7 @@ import jakarta.persistence.*;
 public class Pase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
     private String hora;
 
     @ManyToOne
@@ -26,18 +26,17 @@ public class Pase {
     @JoinColumn(name = "pelicula_titulo")
     private Pelicula pelicula;
 
-    public Pase(Long id, String hora, Cine cine, Pelicula pelicula) {
-        this.id = id;
+    public Pase (String hora, Cine cine, Pelicula pelicula) {
         this.hora = hora;
         this.cine = cine;
         this.pelicula = pelicula;
     }
-
-    public Long getId() {
+    public Pase(){}
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

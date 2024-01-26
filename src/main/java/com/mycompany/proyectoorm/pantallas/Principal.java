@@ -5,7 +5,9 @@
 package com.mycompany.proyectoorm.pantallas;
 
 import entidades.Cine;
+import entidades.Pase;
 import entidades.Pelicula;
+import entidades.Tarifa;
 import java.sql.SQLException;
 import java.util.List;
 import org.hibernate.Session;
@@ -20,10 +22,10 @@ import org.hibernate.query.Query;
  * @author emils
  */
 public class Principal extends javax.swing.JFrame {
-    
+
     final StandardServiceRegistry registro = new StandardServiceRegistryBuilder().configure().build();
     final SessionFactory sessionFactory = new MetadataSources(registro).buildMetadata().buildSessionFactory();
-    
+
     //Session sesion = sessionFactory.openSession();
     /**
      * Creates new form Principal
@@ -39,50 +41,82 @@ public class Principal extends javax.swing.JFrame {
             }
         });
     }
-    private void cargarDatosBase(){
-            Session sesion = sessionFactory.openSession();
-            Pelicula pelicula = new Pelicula("La luna Mágica", "Bon Jovi", "Animacion","PG-13", "Rafael Mutilado","Rafael Mutilado 2","" );
-            Pelicula pelicula2 = new Pelicula("El durazno", "Martin Scorsese", "Animacion","PG-13", "Beyonce","","" );
-            Pelicula pelicula3 = new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion","NC-17", "Cristiano Ronaldo","","" );
-            Pelicula pelicula4 = new Pelicula("La magica noche", "Bon Jovi", "Ciencia Ficcion","R", "","","" );
-            Pelicula pelicula5 = new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion","PG", "Rafa Mora","","" );
-            Pelicula pelicula6 = new Pelicula("La noche estrellada", "Rafita", "Amor","G", "Gundogan","","" );
-            Cine cine = new Cine("Multicines Tenerife","Las Palmitas",1,"564345432" );
-            Cine cine2 = new Cine("Yelmo Meridiano","Ofra",2,"234345456");
-            Cine cine3 = new Cine("Yelmo La Villa","San Isidro",3,"846353221");
-            Cine cine4 = new Cine("X-Sur Cine","Roque del Conde",4,"867546543");
-            Cine cine5 = new Cine("Cine Zentral Center","Fañabe",5,"660122340");
-            Cine cine6 = new Cine("Cine Price Prime","La Caleta",6,"660122544");
-            sesion.save(pelicula);
-            sesion.save(pelicula2);
-            sesion.save(pelicula3);
-            sesion.save(pelicula4);
-            sesion.save(pelicula5);
-            sesion.save(pelicula6);
-            sesion.save(cine);
-            sesion.save(cine2);
-            sesion.save(cine3);
-            sesion.save(cine4);
-            sesion.save(cine5);
-            sesion.save(cine6);
-            sesion.getTransaction().commit();
+
+    private void cargarDatosBase() {
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
+        sesion.save(new Pelicula("La luna Mágica", "Bon Jovi", "Animacion", "PG-13", "Rafael Mutilado", "Rafael Mutilado 2", ""));
+        sesion.save(new Pelicula("El durazno", "Martin Scorsese", "Animacion", "PG-13", "Beyonce", "", ""));
+        sesion.save( new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion", "NC-17", "Cristiano Ronaldo", "", ""));
+        sesion.save( new Pelicula("La magica noche", "Bon Jovi", "Ciencia Ficcion", "R", "", "", ""));
+        sesion.save(new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion", "PG", "Rafa Mora", "", ""));
+        sesion.save(new Pelicula("La noche estrellada", "Rafita", "Amor", "G", "Gundogan", "", ""));
+        sesion.save( new Cine("Multicines Tenerife", "Las Palmitas", 1, "564345432"));
+        sesion.save(new Cine("Yelmo Meridiano", "Ofra", 2, "234345456"));
+        sesion.save(new Cine("Yelmo La Villa", "San Isidro", 3, "846353221"));
+        sesion.save(new Cine("X-Sur Cine", "Roque del Conde", 4, "867546543"));
+        sesion.save( new Cine("Cine Zentral Center", "Fañabe", 5, "660122340"));
+        sesion.save( new Cine("Cine Price Prime", "La Caleta", 6, "660122544"));
+        sesion.getTransaction().commit();
+        
+        List<Cine> cines = sesion.createQuery("FROM Cine", Cine.class).list();
+
+        // Crear y asignar tarifas para cada cine
+        cines.forEach(ciner -> {
+            asignarTarifasACine(ciner);
+        });
+        
+        List<Pelicula> peliculas = sesion.createQuery("FROM Pelicula", Pelicula.class).list();
+        cines.forEach(ciner ->{
+            peliculas.forEach(pelicular ->{
+            generarPasesParaCineYPelicula(ciner, pelicular);
+            });
+        });
+        sesion.close();
+        
     }
+    private void generarPasesParaCineYPelicula(Cine cine, Pelicula pelicula) {
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
+        sesion.save(new Pase("12:30", cine, pelicula));
+        sesion.save(new Pase("13:30", cine, pelicula));
+        sesion.save(new Pase("15:30", cine, pelicula));
+        sesion.save(new Pase("17:30", cine, pelicula));
+        sesion.save(new Pase("20:30", cine, pelicula));
+        sesion.save(new Pase("22:30", cine, pelicula));
+        sesion.getTransaction().commit();
+        sesion.close();
+    }
+    private void asignarTarifasACine(Cine cine) {
+        // Crear y asignar tarifas para un cine específico
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
+        sesion.save(new Tarifa("Normal", 7.50, cine));
+        sesion.save(new Tarifa("Miercoles", 5.50, cine));
+        sesion.save(new Tarifa("Sabado", 5.50, cine));
+        sesion.save(new Tarifa("Domingo y Festivos", 6.50, cine));
+        sesion.save(new Tarifa("Jubilados/Ancianos", 4.50, cine));
+        sesion.save(new Tarifa("Niños", 4.50, cine));
+        sesion.getTransaction().commit();
+        sesion.close();
+    }
+
     private void cargarDatosEnTabla() {
         Session sesion = sessionFactory.openSession();
         List<Pelicula> peliculas = sesion.createQuery("from Pelicula", Pelicula.class).getResultList();
 
         // Crear una matriz para almacenar los datos de las películas
-        Object[][] peliculaData = new Object[peliculas.size()][7];
+        Object[][] peliculaData = new Object[peliculas.size()][(8)];
         for (int i = 0; i < peliculas.size(); i++) {
             Pelicula pelicula = peliculas.get(i);
             peliculaData[i][0] = pelicula.getId();
-            peliculaData[i][1] = pelicula.getTitulo();
-            peliculaData[i][2] = pelicula.getDirector();
-            peliculaData[i][3] = pelicula.getClasificacion();
-            peliculaData[i][4] = pelicula.getGenero();
-            peliculaData[i][5] = pelicula.getProtagonista1();
-            peliculaData[i][6] = pelicula.getProtagonista2();
-            peliculaData[i][7] = pelicula.getProtagonista3();
+            peliculaData[i][1] = pelicula.getTitulo().toString();
+            peliculaData[i][2] = pelicula.getDirector().toString();
+            peliculaData[i][3] = pelicula.getClasificacion().toString();
+            peliculaData[i][4] = pelicula.getGenero().toString();
+            peliculaData[i][5] = pelicula.getProtagonista1().toString();
+            peliculaData[i][6] = pelicula.getProtagonista2().toString();
+            peliculaData[i][7] = pelicula.getProtagonista3().toString();
         }
 
         // Configurar el modelo de la tabla con los datos cargados
@@ -94,7 +128,7 @@ public class Principal extends javax.swing.JFrame {
         ) {
             Class[] types = new Class[]{
                 java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean[]{
                 false, false, false, false, false, false, false, false
@@ -139,7 +173,7 @@ public class Principal extends javax.swing.JFrame {
             ) {
                 Class[] types = new Class[]{
                     java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                    java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
+                    java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
                 };
                 boolean[] canEdit = new boolean[]{
                     false, false, false, false, false, false, false, false
@@ -194,7 +228,7 @@ public class Principal extends javax.swing.JFrame {
             ) {
                 Class[] types = new Class[]{
                     java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                    java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
+                    java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
                 };
                 boolean[] canEdit = new boolean[]{
                     false, false, false, false, false, false, false, false
@@ -219,7 +253,7 @@ public class Principal extends javax.swing.JFrame {
         // Crear una consulta HQL para obtener películas por el director
         String hql = "FROM Pelicula p WHERE p.genero = :tipoGenero";
         Query<Pelicula> query = sesion.createQuery(hql, Pelicula.class);
-        query.setParameter("nombreDirector", tipoGenero);
+        query.setParameter("tipoGenero", tipoGenero);
 
         List<Pelicula> peliculas = query.list();
         sesion.close();
@@ -249,7 +283,7 @@ public class Principal extends javax.swing.JFrame {
             ) {
                 Class[] types = new Class[]{
                     java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                    java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
+                    java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
                 };
                 boolean[] canEdit = new boolean[]{
                     false, false, false, false, false, false, false, false
@@ -893,6 +927,11 @@ public class Principal extends javax.swing.JFrame {
         jLabel1.setText("Proyecto Cines");
 
         insertarDatosBase.setText("No tienes datos?");
+        insertarDatosBase.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                insertarDatosBaseActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -992,10 +1031,10 @@ public class Principal extends javax.swing.JFrame {
         String consulta = textoConsultas.getText();
         switch (indice) {
             case 0:
-                
+
                 break;
             case 1:
-                
+
                 break;
             case 2:
                 cargarPeliculasPorDirector(consulta);
@@ -1004,7 +1043,7 @@ public class Principal extends javax.swing.JFrame {
                 cargarPeliculasPorGenero(consulta);
                 break;
             default:
-                
+
         }
     }//GEN-LAST:event_botonBusquedaActionPerformed
 
@@ -1032,6 +1071,10 @@ public class Principal extends javax.swing.JFrame {
                 textoCambiante.setText("Ingresa el nombre del Cine:");
         }
     }//GEN-LAST:event_comboConsultasActionPerformed
+
+    private void insertarDatosBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertarDatosBaseActionPerformed
+       cargarDatosBase();
+    }//GEN-LAST:event_insertarDatosBaseActionPerformed
 
     /**
      * @param args the command line arguments

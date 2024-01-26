@@ -15,7 +15,7 @@ import jakarta.persistence.*;
 public class Tarifa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
     private String dia;
     private double precio;
 
@@ -23,18 +23,17 @@ public class Tarifa {
     @JoinColumn(name = "cine_nombre")
     private Cine cine;
 
-    public Tarifa(Long id, String dia, double precio, Cine cine) {
-        this.id = id;
+    public Tarifa( String dia, double precio, Cine cine) {
         this.dia = dia;
         this.precio = precio;
         this.cine = cine;
     }
-
-    public Long getId() {
+    public Tarifa(){}
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

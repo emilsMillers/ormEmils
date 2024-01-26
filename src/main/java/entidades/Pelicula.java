@@ -38,7 +38,7 @@ public class Pelicula {
         this.protagonista2 = protagonista2;
         this.protagonista3 = protagonista3;
     }
-
+    public Pelicula(){}
     public int getId() {
         return id;
     }
