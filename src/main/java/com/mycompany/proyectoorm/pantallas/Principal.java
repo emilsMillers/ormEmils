@@ -8,8 +8,11 @@ import entidades.Cine;
 import entidades.Pase;
 import entidades.Pelicula;
 import entidades.Tarifa;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
+import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
@@ -40,131 +43,126 @@ public class Principal extends javax.swing.JFrame {
                 botonActualizarActionPerformed(evt);
             }
         });
+
+        botonInsertarPelicula.setEnabled(false);
+
+        Titulo.getDocument().addDocumentListener(new CambioCampoListener());
+        Director.getDocument().addDocumentListener(new CambioCampoListener());
+        Genero.getDocument().addDocumentListener(new CambioCampoListener());
+        clasificacion.addItemListener(e -> validarCampos());
+        listaHorarios.addListSelectionListener(e -> validarCampos());
+        listaCines.addListSelectionListener(e -> validarCampos());
+        textoTitulo.setEnabled(false);
+        textoGenero.setEnabled(false);
+        textoDirector.setEnabled(false);
+        textoProta1.setEnabled(false);
+        textoProta2.setEnabled(false);
+        textoProta3.setEnabled(false);
+        comboActu.setEnabled(false);
+
+        botonEdit.setEnabled(false);
+        textoTitulo.getDocument().addDocumentListener(new CambioCampoEditListener());
+        textoGenero.getDocument().addDocumentListener(new CambioCampoEditListener());
+        textoDirector.getDocument().addDocumentListener(new CambioCampoEditListener());
+        comboActu.addItemListener(e -> validarCampos());
     }
 
     private void cargarDatosBase() {
         Session sesion = sessionFactory.openSession();
         sesion.beginTransaction();
-        sesion.save(new Pelicula("La luna Mágica", "Bon Jovi", "Animacion", "PG-13", "Rafael Mutilado", "Rafael Mutilado 2", ""));
-        sesion.save(new Pelicula("El durazno", "Martin Scorsese", "Animacion", "PG-13", "Beyonce", "", ""));
-        sesion.save( new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion", "NC-17", "Cristiano Ronaldo", "", ""));
-        sesion.save( new Pelicula("La magica noche", "Bon Jovi", "Ciencia Ficcion", "R", "", "", ""));
-        sesion.save(new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion", "PG", "Rafa Mora", "", ""));
-        sesion.save(new Pelicula("La noche estrellada", "Rafita", "Amor", "G", "Gundogan", "", ""));
-        sesion.save( new Cine("Multicines Tenerife", "Las Palmitas", 1, "564345432"));
-        sesion.save(new Cine("Yelmo Meridiano", "Ofra", 2, "234345456"));
-        sesion.save(new Cine("Yelmo La Villa", "San Isidro", 3, "846353221"));
-        sesion.save(new Cine("X-Sur Cine", "Roque del Conde", 4, "867546543"));
-        sesion.save( new Cine("Cine Zentral Center", "Fañabe", 5, "660122340"));
-        sesion.save( new Cine("Cine Price Prime", "La Caleta", 6, "660122544"));
-        sesion.getTransaction().commit();
-        
-        List<Cine> cines = sesion.createQuery("FROM Cine", Cine.class).list();
 
-        // Crear y asignar tarifas para cada cine
-        cines.forEach(ciner -> {
-            asignarTarifasACine(ciner);
-        });
-        
-        List<Pelicula> peliculas = sesion.createQuery("FROM Pelicula", Pelicula.class).list();
-        cines.forEach(ciner ->{
-            peliculas.forEach(pelicular ->{
-            generarPasesParaCineYPelicula(ciner, pelicular);
+        try {
+
+            sesion.save(new Pelicula("La luna Mágica", "Bon Jovi", "Animacion", "PG-13", "Rafael Mutilado", "Rafael Mutilado 2", ""));
+            sesion.save(new Pelicula("El durazno", "Martin Scorsese", "Animacion", "PG-13", "Beyonce", "", ""));
+            sesion.save(new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion", "NC-17", "Cristiano Ronaldo", "", ""));
+            sesion.save(new Pelicula("La magica noche", "Bon Jovi", "Ciencia Ficcion", "R", "", "", ""));
+            sesion.save(new Pelicula("Cristiano Ronaldo", "Cristiano Ronaldo", "Accion", "PG", "Rafa Mora", "", ""));
+            sesion.save(new Pelicula("La noche estrellada", "Rafita", "Amor", "G", "Gundogan", "", ""));
+            sesion.save(new Cine("Multicines Tenerife", "Las Palmitas", 1, "564345432"));
+            sesion.save(new Cine("Yelmo Meridiano", "Ofra", 2, "234345456"));
+            sesion.save(new Cine("Yelmo La Villa", "San Isidro", 3, "846353221"));
+            sesion.save(new Cine("X-Sur Cine", "Roque del Conde", 4, "867546543"));
+            sesion.save(new Cine("Cine Zentral Center", "Fañabe", 5, "660122340"));
+            sesion.save(new Cine("Cine Price Prime", "La Caleta", 6, "660122544"));
+            sesion.getTransaction().commit();
+            List<Cine> cines = sesion.createQuery("FROM Cine", Cine.class).list();
+
+            cines.forEach(ciner -> {
+                asignarTarifasACine(ciner);
             });
-        });
-        sesion.close();
-        
+
+            List<Pelicula> peliculas = sesion.createQuery("FROM Pelicula", Pelicula.class).list();
+            cines.forEach(ciner -> {
+                peliculas.forEach(pelicular -> {
+                    generarPasesParaCineYPelicula(ciner, pelicular);
+                });
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            sesion.close();
+        }
+
     }
+
     private void generarPasesParaCineYPelicula(Cine cine, Pelicula pelicula) {
         Session sesion = sessionFactory.openSession();
         sesion.beginTransaction();
-        sesion.save(new Pase("12:30", cine, pelicula));
-        sesion.save(new Pase("13:30", cine, pelicula));
-        sesion.save(new Pase("15:30", cine, pelicula));
-        sesion.save(new Pase("17:30", cine, pelicula));
-        sesion.save(new Pase("20:30", cine, pelicula));
-        sesion.save(new Pase("22:30", cine, pelicula));
-        sesion.getTransaction().commit();
-        sesion.close();
+        try {
+            sesion.save(new Pase("12:30", cine, pelicula));
+            sesion.save(new Pase("13:30", cine, pelicula));
+            sesion.save(new Pase("15:30", cine, pelicula));
+            sesion.save(new Pase("17:30", cine, pelicula));
+            sesion.save(new Pase("20:30", cine, pelicula));
+            sesion.save(new Pase("22:30", cine, pelicula));
+            sesion.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            sesion.close();
+        }
     }
+
     private void asignarTarifasACine(Cine cine) {
-        // Crear y asignar tarifas para un cine específico
         Session sesion = sessionFactory.openSession();
         sesion.beginTransaction();
-        sesion.save(new Tarifa("Normal", 7.50, cine));
-        sesion.save(new Tarifa("Miercoles", 5.50, cine));
-        sesion.save(new Tarifa("Sabado", 5.50, cine));
-        sesion.save(new Tarifa("Domingo y Festivos", 6.50, cine));
-        sesion.save(new Tarifa("Jubilados/Ancianos", 4.50, cine));
-        sesion.save(new Tarifa("Niños", 4.50, cine));
-        sesion.getTransaction().commit();
-        sesion.close();
+        try {
+            sesion.save(new Tarifa("Normal", 7.50, cine));
+            sesion.save(new Tarifa("Miercoles", 5.50, cine));
+            sesion.save(new Tarifa("Sabado", 5.50, cine));
+            sesion.save(new Tarifa("Domingo y Festivos", 6.50, cine));
+            sesion.save(new Tarifa("Jubilados/Ancianos", 4.50, cine));
+            sesion.save(new Tarifa("Niños", 4.50, cine));
+            sesion.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            sesion.close();
+        }
     }
 
     private void cargarDatosEnTabla() {
         Session sesion = sessionFactory.openSession();
-        List<Pelicula> peliculas = sesion.createQuery("from Pelicula", Pelicula.class).getResultList();
+        try {
+            List<Pelicula> peliculas = sesion.createQuery("from Pelicula", Pelicula.class).getResultList();
 
-        // Crear una matriz para almacenar los datos de las películas
-        Object[][] peliculaData = new Object[peliculas.size()][(8)];
-        for (int i = 0; i < peliculas.size(); i++) {
-            Pelicula pelicula = peliculas.get(i);
-            peliculaData[i][0] = pelicula.getId();
-            peliculaData[i][1] = pelicula.getTitulo().toString();
-            peliculaData[i][2] = pelicula.getDirector().toString();
-            peliculaData[i][3] = pelicula.getClasificacion().toString();
-            peliculaData[i][4] = pelicula.getGenero().toString();
-            peliculaData[i][5] = pelicula.getProtagonista1().toString();
-            peliculaData[i][6] = pelicula.getProtagonista2().toString();
-            peliculaData[i][7] = pelicula.getProtagonista3().toString();
-        }
-
-        // Configurar el modelo de la tabla con los datos cargados
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                peliculaData,
-                new String[]{
-                    "Id", "Pelicula", "Director", "Clasificación", "Género", "Protagonista", "Protagonista 2", "Protagonista 3"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean[]{
-                false, false, false, false, false, false, false, false
-            };
-
-            @Override
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
+            Object[][] peliculaData = new Object[peliculas.size()][(8)];
+            for (int i = 0; i < peliculas.size(); i++) {
+                Pelicula pelicula = peliculas.get(i);
+                peliculaData[i][0] = pelicula.getId();
+                peliculaData[i][1] = pelicula.getTitulo().toString();
+                peliculaData[i][2] = pelicula.getDirector().toString();
+                peliculaData[i][3] = pelicula.getClasificacion().toString();
+                peliculaData[i][4] = pelicula.getGenero().toString();
+                peliculaData[i][5] = pelicula.getProtagonista1().toString();
+                peliculaData[i][6] = pelicula.getProtagonista2().toString();
+                peliculaData[i][7] = pelicula.getProtagonista3().toString();
             }
 
-            @Override
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-        sesion.close();
-    }
-
-    private void cargarPeliculaPorId(int id) {
-        Session sesion = sessionFactory.openSession();
-        Pelicula pelicula = sesion.get(Pelicula.class, id);
-        sesion.close();
-
-        if (pelicula != null) {
-            // Crear una matriz para almacenar los datos de la película
-            Object[][] peliculaData = new Object[1][8];
-            peliculaData[0][0] = pelicula.getId();
-            peliculaData[0][1] = pelicula.getTitulo();
-            peliculaData[0][2] = pelicula.getDirector();
-            peliculaData[0][3] = pelicula.getClasificacion();
-            peliculaData[0][4] = pelicula.getGenero();
-            peliculaData[0][5] = pelicula.getProtagonista1();
-            peliculaData[0][6] = pelicula.getProtagonista2();
-            peliculaData[0][7] = pelicula.getProtagonista3();
-
-            // Configurar el modelo de la tabla con los datos cargados
             jTable1.setModel(new javax.swing.table.DefaultTableModel(
                     peliculaData,
                     new String[]{
@@ -189,116 +187,234 @@ public class Principal extends javax.swing.JFrame {
                     return canEdit[columnIndex];
                 }
             });
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            sesion.close();
+        }
+    }
+
+    private void cargarPasesPorPelicula(String nombrePelicula) {
+        Session sesion = sessionFactory.openSession();
+        try {
+            String hql = "FROM Pase p WHERE p.pelicula.titulo = :nombrePelicula";
+            Query<Pase> query = sesion.createQuery(hql, Pase.class);
+            query.setParameter("nombrePelicula", nombrePelicula);
+
+            List<Pase> pases = query.list();
+
+            if (!pases.isEmpty()) {
+                Object[][] paseData = new Object[pases.size()][3];
+
+                for (int i = 0; i < pases.size(); i++) {
+                    Pase pase = pases.get(i);
+                    paseData[i][0] = pase.getId();
+                    paseData[i][1] = pase.getHora();
+                    paseData[i][2] = pase.getCine().getNombre();
+                }
+
+                jTable2.setModel(new javax.swing.table.DefaultTableModel(
+                        paseData,
+                        new String[]{
+                            "Id", "Hora", "Nombre del Cine"
+                        }
+                ) {
+                    Class[] types = new Class[]{
+                        java.lang.Integer.class, java.lang.String.class, java.lang.String.class
+                    };
+                    boolean[] canEdit = new boolean[]{
+                        false, false, false
+                    };
+
+                    @Override
+                    public Class getColumnClass(int columnIndex) {
+                        return types[columnIndex];
+                    }
+
+                    @Override
+                    public boolean isCellEditable(int rowIndex, int columnIndex) {
+                        return canEdit[columnIndex];
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (sesion != null && sesion.isOpen()) {
+                sesion.close();
+            }
         }
     }
 
     private void cargarPeliculasPorDirector(String nombreDirector) {
         Session sesion = sessionFactory.openSession();
 
-        // Crear una consulta HQL para obtener películas por el director
-        String hql = "FROM Pelicula p WHERE p.director = :nombreDirector";
-        Query<Pelicula> query = sesion.createQuery(hql, Pelicula.class);
-        query.setParameter("nombreDirector", nombreDirector);
+        try {
+            String hql = "FROM Pelicula p WHERE p.director = :nombreDirector";
+            Query<Pelicula> query = sesion.createQuery(hql, Pelicula.class);
+            query.setParameter("nombreDirector", nombreDirector);
 
-        List<Pelicula> peliculas = query.list();
-        sesion.close();
+            List<Pelicula> peliculas = query.list();
 
-        if (!peliculas.isEmpty()) {
-            // Crear una matriz para almacenar los datos de las películas
-            Object[][] peliculaData = new Object[peliculas.size()][8];
+            if (!peliculas.isEmpty()) {
+                Object[][] peliculaData = new Object[peliculas.size()][8];
 
-            for (int i = 0; i < peliculas.size(); i++) {
-                Pelicula pelicula = peliculas.get(i);
-                peliculaData[i][0] = pelicula.getId();
-                peliculaData[i][1] = pelicula.getTitulo();
-                peliculaData[i][2] = pelicula.getDirector();
-                peliculaData[i][3] = pelicula.getClasificacion();
-                peliculaData[i][4] = pelicula.getGenero();
-                peliculaData[i][5] = pelicula.getProtagonista1();
-                peliculaData[i][6] = pelicula.getProtagonista2();
-                peliculaData[i][7] = pelicula.getProtagonista3();
-            }
+                for (int i = 0; i < peliculas.size(); i++) {
+                    Pelicula pelicula = peliculas.get(i);
+                    peliculaData[i][0] = pelicula.getId();
+                    peliculaData[i][1] = pelicula.getTitulo();
+                    peliculaData[i][2] = pelicula.getDirector();
+                    peliculaData[i][3] = pelicula.getClasificacion();
+                    peliculaData[i][4] = pelicula.getGenero();
+                    peliculaData[i][5] = pelicula.getProtagonista1();
+                    peliculaData[i][6] = pelicula.getProtagonista2();
+                    peliculaData[i][7] = pelicula.getProtagonista3();
+                }
 
-            // Configurar el modelo de la tabla con los datos cargados
-            jTable2.setModel(new javax.swing.table.DefaultTableModel(
-                    peliculaData,
-                    new String[]{
-                        "Id", "Pelicula", "Director", "Clasificación", "Género", "Protagonista", "Protagonista 2", "Protagonista 3"
+                jTable2.setModel(new javax.swing.table.DefaultTableModel(
+                        peliculaData,
+                        new String[]{
+                            "Id", "Pelicula", "Director", "Clasificación", "Género", "Protagonista", "Protagonista 2", "Protagonista 3"
+                        }
+                ) {
+                    Class[] types = new Class[]{
+                        java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
+                        java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                    };
+                    boolean[] canEdit = new boolean[]{
+                        false, false, false, false, false, false, false, false
+                    };
+
+                    @Override
+                    public Class getColumnClass(int columnIndex) {
+                        return types[columnIndex];
                     }
-            ) {
-                Class[] types = new Class[]{
-                    java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                    java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-                };
-                boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false
-                };
 
-                @Override
-                public Class getColumnClass(int columnIndex) {
-                    return types[columnIndex];
+                    @Override
+                    public boolean isCellEditable(int rowIndex, int columnIndex) {
+                        return canEdit[columnIndex];
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (sesion != null && sesion.isOpen()) {
+                sesion.close();
+            }
+        }
+    }
+
+    private void cargarTarifasPorCine(String nombreCine) {
+        Session sesion = sessionFactory.openSession();
+
+        try {
+            String hql = "FROM Tarifa t WHERE t.cine.nombre = :nombreCine";
+            Query<Tarifa> query = sesion.createQuery(hql, Tarifa.class);
+            query.setParameter("nombreCine", nombreCine);
+
+            List<Tarifa> tarifas = query.list();
+
+            if (!tarifas.isEmpty()) {
+                Object[][] tarifaData = new Object[tarifas.size()][3];
+
+                for (int i = 0; i < tarifas.size(); i++) {
+                    Tarifa tarifa = tarifas.get(i);
+                    tarifaData[i][0] = tarifa.getId();
+                    tarifaData[i][1] = tarifa.getDia();
+                    tarifaData[i][2] = tarifa.getPrecio();
                 }
 
-                @Override
-                public boolean isCellEditable(int rowIndex, int columnIndex) {
-                    return canEdit[columnIndex];
-                }
-            });
+                jTable2.setModel(new javax.swing.table.DefaultTableModel(
+                        tarifaData,
+                        new String[]{
+                            "Id", "Día", "Precio"
+                        }
+                ) {
+                    Class[] types = new Class[]{
+                        java.lang.Integer.class, java.lang.String.class, java.lang.Double.class
+                    };
+                    boolean[] canEdit = new boolean[]{
+                        false, false, false
+                    };
+
+                    @Override
+                    public Class getColumnClass(int columnIndex) {
+                        return types[columnIndex];
+                    }
+
+                    @Override
+                    public boolean isCellEditable(int rowIndex, int columnIndex) {
+                        return canEdit[columnIndex];
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (sesion != null && sesion.isOpen()) {
+                sesion.close();
+            }
         }
     }
 
     private void cargarPeliculasPorGenero(String tipoGenero) {
         Session sesion = sessionFactory.openSession();
 
-        // Crear una consulta HQL para obtener películas por el director
-        String hql = "FROM Pelicula p WHERE p.genero = :tipoGenero";
-        Query<Pelicula> query = sesion.createQuery(hql, Pelicula.class);
-        query.setParameter("tipoGenero", tipoGenero);
+        try {
+            String hql = "FROM Pelicula p WHERE p.genero = :tipoGenero";
+            Query<Pelicula> query = sesion.createQuery(hql, Pelicula.class);
+            query.setParameter("tipoGenero", tipoGenero);
 
-        List<Pelicula> peliculas = query.list();
-        sesion.close();
+            List<Pelicula> peliculas = query.list();
+            sesion.close();
 
-        if (!peliculas.isEmpty()) {
-            // Crear una matriz para almacenar los datos de las películas
-            Object[][] peliculaData = new Object[peliculas.size()][8];
+            if (!peliculas.isEmpty()) {
+                Object[][] peliculaData = new Object[peliculas.size()][8];
 
-            for (int i = 0; i < peliculas.size(); i++) {
-                Pelicula pelicula = peliculas.get(i);
-                peliculaData[i][0] = pelicula.getId();
-                peliculaData[i][1] = pelicula.getTitulo();
-                peliculaData[i][2] = pelicula.getDirector();
-                peliculaData[i][3] = pelicula.getClasificacion();
-                peliculaData[i][4] = pelicula.getGenero();
-                peliculaData[i][5] = pelicula.getProtagonista1();
-                peliculaData[i][6] = pelicula.getProtagonista2();
-                peliculaData[i][7] = pelicula.getProtagonista3();
-            }
+                for (int i = 0; i < peliculas.size(); i++) {
+                    Pelicula pelicula = peliculas.get(i);
+                    peliculaData[i][0] = pelicula.getId();
+                    peliculaData[i][1] = pelicula.getTitulo();
+                    peliculaData[i][2] = pelicula.getDirector();
+                    peliculaData[i][3] = pelicula.getClasificacion();
+                    peliculaData[i][4] = pelicula.getGenero();
+                    peliculaData[i][5] = pelicula.getProtagonista1();
+                    peliculaData[i][6] = pelicula.getProtagonista2();
+                    peliculaData[i][7] = pelicula.getProtagonista3();
+                }
 
-            // Configurar el modelo de la tabla con los datos cargados
-            jTable2.setModel(new javax.swing.table.DefaultTableModel(
-                    peliculaData,
-                    new String[]{
-                        "Id", "Pelicula", "Director", "Clasificación", "Género", "Protagonista", "Protagonista 2", "Protagonista 3"
+                jTable2.setModel(new javax.swing.table.DefaultTableModel(
+                        peliculaData,
+                        new String[]{
+                            "Id", "Pelicula", "Director", "Clasificación", "Género", "Protagonista", "Protagonista 2", "Protagonista 3"
+                        }
+                ) {
+                    Class[] types = new Class[]{
+                        java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
+                        java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                    };
+                    boolean[] canEdit = new boolean[]{
+                        false, false, false, false, false, false, false, false
+                    };
+
+                    @Override
+                    public Class getColumnClass(int columnIndex) {
+                        return types[columnIndex];
                     }
-            ) {
-                Class[] types = new Class[]{
-                    java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class,
-                    java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-                };
-                boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false
-                };
 
-                @Override
-                public Class getColumnClass(int columnIndex) {
-                    return types[columnIndex];
-                }
-
-                @Override
-                public boolean isCellEditable(int rowIndex, int columnIndex) {
-                    return canEdit[columnIndex];
-                }
-            });
+                    @Override
+                    public boolean isCellEditable(int rowIndex, int columnIndex) {
+                        return canEdit[columnIndex];
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (sesion != null && sesion.isOpen()) {
+                sesion.close();
+            }
         }
     }
 
@@ -323,7 +439,7 @@ public class Principal extends javax.swing.JFrame {
         botonRecogerID = new javax.swing.JButton();
         textoGenero = new javax.swing.JTextField();
         textoTitulo = new javax.swing.JTextField();
-        comboGenero = new javax.swing.JComboBox<>();
+        comboActu = new javax.swing.JComboBox<>();
         textoDirector = new javax.swing.JTextField();
         textoProta1 = new javax.swing.JTextField();
         textoProta3 = new javax.swing.JTextField();
@@ -335,7 +451,7 @@ public class Principal extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        botonEdit = new javax.swing.JButton();
         jPanel6 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         eliminarPelicula = new javax.swing.JButton();
@@ -378,10 +494,22 @@ public class Principal extends javax.swing.JFrame {
         insertarDatosBase = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Cinematografía Pura");
         setMaximumSize(new java.awt.Dimension(597, 823));
         setMinimumSize(new java.awt.Dimension(597, 823));
         setResizable(false);
 
+        jTabbedPane1.setBackground(new java.awt.Color(102, 102, 102));
+        jTabbedPane1.setMaximumSize(new java.awt.Dimension(585, 780));
+        jTabbedPane1.setMinimumSize(new java.awt.Dimension(585, 780));
+        jTabbedPane1.setPreferredSize(new java.awt.Dimension(585, 780));
+
+        jPanel1.setBackground(new java.awt.Color(102, 102, 102));
+
+        jScrollPane1.setBackground(new java.awt.Color(51, 102, 0));
+
+        jTable1.setBackground(new java.awt.Color(51, 102, 0));
+        jTable1.setForeground(new java.awt.Color(255, 255, 255));
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -403,6 +531,7 @@ public class Principal extends javax.swing.JFrame {
         jPanel5.setBackground(new java.awt.Color(102, 102, 102));
 
         jLabel4.setFont(new java.awt.Font("sansserif", 0, 24)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(0, 0, 0));
         jLabel4.setText("Editar");
 
         textoId.setColumns(5);
@@ -416,6 +545,11 @@ public class Principal extends javax.swing.JFrame {
         jLabel3.setText("ID:");
 
         botonRecogerID.setText("Buscar");
+        botonRecogerID.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonRecogerIDActionPerformed(evt);
+            }
+        });
 
         textoGenero.setColumns(20);
         textoGenero.addActionListener(new java.awt.event.ActionListener() {
@@ -431,7 +565,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
 
-        comboGenero.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "G", "PG", "PG-13", "R", "NC-17" }));
+        comboActu.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "G", "PG", "PG-13", "R", "NC-17" }));
 
         textoDirector.setColumns(20);
         textoDirector.addActionListener(new java.awt.event.ActionListener() {
@@ -475,7 +609,12 @@ public class Principal extends javax.swing.JFrame {
 
         jLabel12.setText("Prota 3:");
 
-        jButton1.setText("Editar");
+        botonEdit.setText("Editar");
+        botonEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonEditActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -497,7 +636,7 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(textoProta3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(textoProta1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(textoDirector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboGenero, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboActu, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(textoGenero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(textoTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(15, 15, 15))
@@ -511,7 +650,7 @@ public class Principal extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(botonRecogerID)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton1))
+                        .addComponent(botonEdit))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGap(132, 132, 132)
                         .addComponent(jLabel4)))
@@ -527,7 +666,7 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(textoId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
                     .addComponent(botonRecogerID)
-                    .addComponent(jButton1))
+                    .addComponent(botonEdit))
                 .addGap(29, 29, 29)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(textoTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -538,7 +677,7 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(jLabel7))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(comboGenero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboActu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -562,9 +701,15 @@ public class Principal extends javax.swing.JFrame {
         jPanel6.setBackground(new java.awt.Color(102, 102, 102));
 
         jLabel2.setFont(new java.awt.Font("sansserif", 0, 24)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(0, 0, 0));
         jLabel2.setText("Eliminar");
 
         eliminarPelicula.setText("Eliminar");
+        eliminarPelicula.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                eliminarPeliculaActionPerformed(evt);
+            }
+        });
 
         textoIdE.setColumns(5);
 
@@ -634,11 +779,13 @@ public class Principal extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(33, 33, 33)
-                        .addComponent(botonActualizar, javax.swing.GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE)
+                        .addComponent(botonActualizar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(32, 32, 32))))
         );
 
         jTabbedPane1.addTab("Peliculas", jPanel1);
+
+        jPanel2.setBackground(new java.awt.Color(102, 102, 102));
 
         botonInsertarPelicula.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         botonInsertarPelicula.setText("Insertar");
@@ -745,12 +892,13 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(0, 64, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel19)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                            .addGap(17, 17, 17)
-                            .addComponent(jLabel15)
-                            .addGap(132, 132, 132)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel19)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(17, 17, 17)
+                                .addComponent(jLabel15)))
+                        .addGap(132, 132, 132))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jLabel21)
@@ -839,6 +987,8 @@ public class Principal extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Insertar", jPanel2);
 
+        jPanel3.setBackground(new java.awt.Color(102, 102, 102));
+
         jLabel18.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel18.setText("Elige tu consulta:");
 
@@ -855,15 +1005,14 @@ public class Principal extends javax.swing.JFrame {
         textoConsultas.setColumns(15);
         textoConsultas.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
+        jTable2.setBackground(new java.awt.Color(51, 102, 0));
+        jTable2.setForeground(new java.awt.Color(255, 255, 255));
         jTable2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+
             }
         ));
         jScrollPane4.setViewportView(jTable2);
@@ -916,7 +1065,7 @@ public class Principal extends javax.swing.JFrame {
                 .addComponent(textoConsultas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(34, 34, 34)
                 .addComponent(botonBusqueda)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 90, Short.MAX_VALUE)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(42, 42, 42))
         );
@@ -940,23 +1089,25 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 585, Short.MAX_VALUE)
+                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel1)
-                        .addGap(83, 83, 83)
+                        .addGap(66, 66, 66)
                         .addComponent(insertarDatosBase)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(24, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(insertarDatosBase))
-                .addGap(18, 18, 18)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 740, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(insertarDatosBase)
+                        .addGap(25, 25, 25))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 780, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -974,21 +1125,107 @@ public class Principal extends javax.swing.JFrame {
         String campo8 = prota2.getText();
         String campo9 = prota3.getText();
 
-        if (!campo1.isEmpty() && !campo2.isEmpty() && !campo3.isEmpty() && !campo4.isEmpty() && !campo5.isEmpty() && !campo6.isEmpty()) {
-            botonInsertarPelicula.setEnabled(true);
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
 
-            Session sesion = sessionFactory.openSession();
+        try {
+
             Pelicula pelicula = new Pelicula(campo1, campo2, campo4, campo3, campo7, campo8, campo9);
-
             sesion.save(pelicula);
+
+            for (String nombreCine : campo6) {
+                for (String horario : campo5) {
+
+                    Cine cine = (Cine) sesion.createQuery("FROM Cine WHERE nombre = :nombreCine")
+                            .setParameter("nombreCine", nombreCine)
+                            .uniqueResult();
+
+                    Pase pase = new Pase(horario, cine, pelicula);
+                    sesion.save(pase);
+                }
+            }
             sesion.getTransaction().commit();
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            Titulo.setText("");
+            Director.setText("");
+            clasificacion.setSelectedIndex(0);
+            Genero.setText("");
+            listaHorarios.clearSelection();
+            listaCines.clearSelection();
+            prota1.setText("");
+            prota2.setText("");
+            prota3.setText("");
             sesion.close();
+        }
+
+    }//GEN-LAST:event_botonInsertarPeliculaActionPerformed
+    private class CambioCampoListener implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            validarCampos();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            validarCampos();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            validarCampos();
+        }
+    }
+
+    private class CambioCampoEditListener implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            validarCamposEdit();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            validarCamposEdit();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            validarCamposEdit();
+        }
+    }
+
+    private void validarCampos() {
+        String campo1 = Titulo.getText();
+        String campo2 = Director.getText();
+        String campo3 = clasificacion.getSelectedItem().toString();
+        String campo4 = Genero.getText();
+        List<String> campo5 = listaHorarios.getSelectedValuesList();
+        List<String> campo6 = listaCines.getSelectedValuesList();
+
+        if (!campo1.isEmpty() && !campo2.isEmpty() && !campo3.isEmpty() && !campo4.isEmpty() && !campo5.isEmpty() && !campo6.isEmpty()) {
+            botonInsertarPelicula.setEnabled(true);
         } else {
-            // Al menos uno de los campos está vacío, deshabilita el botón
             botonInsertarPelicula.setEnabled(false);
         }
-    }//GEN-LAST:event_botonInsertarPeliculaActionPerformed
+    }
+
+    private void validarCamposEdit() {
+        String campo1 = textoTitulo.getText();
+        String campo2 = textoDirector.getText();
+        String campo3 = comboActu.getSelectedItem().toString();
+        String campo4 = textoGenero.getText();
+
+        if (!campo1.isEmpty() && !campo2.isEmpty() && !campo3.isEmpty() && !campo4.isEmpty()) {
+            botonEdit.setEnabled(true);
+        } else {
+            botonEdit.setEnabled(false);
+        }
+    }
 
     private void botonActualizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonActualizarActionPerformed
         cargarDatosEnTabla();
@@ -1031,10 +1268,10 @@ public class Principal extends javax.swing.JFrame {
         String consulta = textoConsultas.getText();
         switch (indice) {
             case 0:
-
+                cargarTarifasPorCine(consulta);
                 break;
             case 1:
-
+                cargarPasesPorPelicula(consulta);
                 break;
             case 2:
                 cargarPeliculasPorDirector(consulta);
@@ -1073,8 +1310,117 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_comboConsultasActionPerformed
 
     private void insertarDatosBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertarDatosBaseActionPerformed
-       cargarDatosBase();
+        cargarDatosBase();
     }//GEN-LAST:event_insertarDatosBaseActionPerformed
+
+    private void eliminarPeliculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eliminarPeliculaActionPerformed
+        int idElim = Integer.parseInt(textoIdE.getText());
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
+        try {
+            Pelicula peliculaSeleccionada = sesion.get(Pelicula.class, idElim);
+            Query<Pase> query = sesion.createQuery("DELETE FROM Pase p WHERE p.pelicula = :peliculaSeleccionada");
+            query.setParameter("peliculaSeleccionada", peliculaSeleccionada);
+            query.executeUpdate();
+            sesion.delete(peliculaSeleccionada);
+            sesion.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            textoIdE.setText("");
+            cargarDatosEnTabla();
+            sesion.close();
+        }
+    }//GEN-LAST:event_eliminarPeliculaActionPerformed
+
+    private void botonRecogerIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonRecogerIDActionPerformed
+        int idElim = Integer.parseInt(textoId.getText());
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
+        try {
+            Pelicula peliculaSeleccionada = sesion.get(Pelicula.class, idElim);
+            if (peliculaSeleccionada != null) {
+                textoTitulo.setEnabled(true);
+                textoGenero.setEnabled(true);
+                textoDirector.setEnabled(true);
+                textoProta1.setEnabled(true);
+                textoProta2.setEnabled(true);
+                textoProta3.setEnabled(true);
+                comboActu.setEnabled(true);
+
+                textoId.setEnabled(false);
+                textoTitulo.setText(peliculaSeleccionada.getTitulo());
+                textoGenero.setText(peliculaSeleccionada.getGenero());
+                textoDirector.setText(peliculaSeleccionada.getDirector());
+                textoProta1.setText(peliculaSeleccionada.getProtagonista1());
+                textoProta2.setText(peliculaSeleccionada.getProtagonista2());
+                textoProta3.setText(peliculaSeleccionada.getProtagonista3());
+                comboActu.setSelectedItem(peliculaSeleccionada.getClasificacion());
+            } else {
+                JOptionPane.showMessageDialog(this, "No se encontró ninguna película con ID: " + idElim, "Película no encontrada", JOptionPane.INFORMATION_MESSAGE);
+                textoTitulo.setEnabled(false);
+                textoGenero.setEnabled(false);
+                textoDirector.setEnabled(false);
+                textoProta1.setEnabled(false);
+                textoProta2.setEnabled(false);
+                textoProta3.setEnabled(false);
+                comboActu.setEnabled(false);
+            }
+            sesion.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            sesion.close();
+        }
+    }//GEN-LAST:event_botonRecogerIDActionPerformed
+
+    private void botonEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonEditActionPerformed
+        String campo1 = textoTitulo.getText();
+        String campo2 = textoGenero.getText();
+        String campo4 = textoDirector.getText();
+        String campo5 = textoProta1.getText();
+        String campo6 = textoProta2.getText();
+        String campo7 = textoProta3.getText();
+        String campo3 = comboActu.getSelectedItem().toString();
+        Session sesion = sessionFactory.openSession();
+        sesion.beginTransaction();
+        try {
+            Pelicula peliculaSeleccionada = sesion.get(Pelicula.class, Integer.parseInt(textoId.getText()));
+            peliculaSeleccionada.setTitulo(campo1);
+            peliculaSeleccionada.setGenero(campo2);
+            peliculaSeleccionada.setDirector(campo4);
+            peliculaSeleccionada.setProtagonista1(campo5);
+            peliculaSeleccionada.setProtagonista2(campo6);
+            peliculaSeleccionada.setProtagonista3(campo7);
+            peliculaSeleccionada.setClasificacion(campo3);
+            sesion.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            sesion.getTransaction().rollback();
+        } finally {
+            textoTitulo.setEnabled(false);
+            textoGenero.setEnabled(false);
+            textoDirector.setEnabled(false);
+            textoProta1.setEnabled(false);
+            textoProta2.setEnabled(false);
+            textoProta3.setEnabled(false);
+            comboActu.setEnabled(false);
+            textoId.setEnabled(true);
+            textoId.setText("");
+            textoTitulo.setText("");
+            textoGenero.setText("");
+            textoDirector.setText("");
+            textoProta1.setText("");
+            textoProta2.setText("");
+            textoProta3.setText("");
+            comboActu.setSelectedIndex(0);
+            cargarDatosEnTabla();
+            sesion.close();
+        }
+
+    }//GEN-LAST:event_botonEditActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1086,14 +1432,14 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTextField Titulo;
     private javax.swing.JButton botonActualizar;
     private javax.swing.JButton botonBusqueda;
+    private javax.swing.JButton botonEdit;
     private javax.swing.JButton botonInsertarPelicula;
     private javax.swing.JButton botonRecogerID;
     private javax.swing.JComboBox<String> clasificacion;
+    private javax.swing.JComboBox<String> comboActu;
     private javax.swing.JComboBox<String> comboConsultas;
-    private javax.swing.JComboBox<String> comboGenero;
     private javax.swing.JButton eliminarPelicula;
     private javax.swing.JButton insertarDatosBase;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

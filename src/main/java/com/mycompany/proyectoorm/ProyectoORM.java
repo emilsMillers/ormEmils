@@ -4,13 +4,6 @@
 package com.mycompany.proyectoorm;
 
 import com.mycompany.proyectoorm.pantallas.Principal;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 /**
  *
