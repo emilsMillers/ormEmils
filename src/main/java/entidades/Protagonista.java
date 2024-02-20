@@ -5,40 +5,34 @@
 package entidades;
 
 import jakarta.persistence.*;
-import java.util.List;
 
 /**
  *
  * @author emils
  */
 @Entity
-@Table(name = "pase")
-public class Pase {
+@Table(name = "protagonista")
+public class Protagonista {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name = "cine_id")
-    private Cine cine;
+    @Column(name = "nombre", length = 50, nullable = false)
+    private String nombre;
 
     @ManyToOne
     @JoinColumn(name = "pelicula_id")
     private Pelicula pelicula;
 
-    @OneToMany(mappedBy = "pase", cascade = CascadeType.ALL)
-    private List<Horario> horarios;
-
-    public Pase() {
+    public Protagonista() {
     }
 
-    public Pase(int id, Cine cine, Pelicula pelicula, List<Horario> horarios) {
+    public Protagonista(int id, String nombre, Pelicula pelicula) {
         this.id = id;
-        this.cine = cine;
+        this.nombre = nombre;
         this.pelicula = pelicula;
-        this.horarios = horarios;
     }
 
     public int getId() {
@@ -49,12 +43,12 @@ public class Pase {
         this.id = id;
     }
 
-    public Cine getCine() {
-        return cine;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setCine(Cine cine) {
-        this.cine = cine;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public Pelicula getPelicula() {
@@ -63,14 +57,6 @@ public class Pase {
 
     public void setPelicula(Pelicula pelicula) {
         this.pelicula = pelicula;
-    }
-
-    public List<Horario> getHorarios() {
-        return horarios;
-    }
-
-    public void setHorarios(List<Horario> horarios) {
-        this.horarios = horarios;
     }
 
 }

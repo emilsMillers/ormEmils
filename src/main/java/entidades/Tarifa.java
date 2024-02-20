@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package entidades;
 
 import jakarta.persistence.*;
@@ -11,46 +8,50 @@ import jakarta.persistence.*;
  * @author emils
  */
 @Entity
-@Table(name = "TARIFA")
+@Table(name = "tarifa")
 public class Tarifa {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
-    private String dia;
-    private double precio;
 
-    @ManyToOne
-    @JoinColumn(name = "cine_nombre")
+    @OneToOne
+    @JoinColumn(name = "cine_id")
     private Cine cine;
 
-    public Tarifa( String dia, double precio, Cine cine) {
-        this.dia = dia;
-        this.precio = precio;
-        this.cine = cine;
+    @Column(name = "Miércoles/Sabado")
+    private double mierSabado;
+    
+    @Column(name = "festivos")
+    private double festivos;
+
+    @Column(name = "estudiante")
+    private double estudiante;
+    
+    @Column(name = "Jubilados")
+    private double jubilados;
+
+    
+
+    public Tarifa() {
     }
-    public Tarifa(){}
+
+    public Tarifa(int id, Cine cine, double mierSabado, double jubilados, double festivos, double estudiante) {
+        this.id = id;
+        this.cine = cine;
+        this.mierSabado = mierSabado;
+        this.jubilados = jubilados;
+        this.festivos = festivos;
+        this.estudiante = estudiante;
+    }
+
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getDia() {
-        return dia;
-    }
-
-    public void setDia(String dia) {
-        this.dia = dia;
-    }
-
-    public double getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(double precio) {
-        this.precio = precio;
     }
 
     public Cine getCine() {
@@ -60,5 +61,37 @@ public class Tarifa {
     public void setCine(Cine cine) {
         this.cine = cine;
     }
-    
+
+    public double getmierSabado() {
+        return mierSabado;
+    }
+
+    public void setmierSabado(double mierSabado) {
+        this.mierSabado = mierSabado;
+    }
+
+    public double getjubilados() {
+        return jubilados;
+    }
+
+    public void setjubilados(double jubilados) {
+        this.jubilados = jubilados;
+    }
+
+    public double getFestivos() {
+        return festivos;
+    }
+
+    public void setFestivos(double festivos) {
+        this.festivos = festivos;
+    }
+
+    public double getEstudiante() {
+        return estudiante;
+    }
+
+    public void setEstudiante(double estudiante) {
+        this.estudiante = estudiante;
+    }
+
 }

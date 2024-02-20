@@ -3,7 +3,7 @@
  */
 package com.mycompany.proyectoorm;
 
-import com.mycompany.proyectoorm.pantallas.Principal;
+import com.mycompany.proyectoorm.pantallas.PantallaPrincipal;
 
 /**
  *
@@ -13,9 +13,9 @@ public class ProyectoORM {
 
     public static void main(String[] args) {
 
-        Principal pantalla;
+        PantallaPrincipal pantalla;
 
-        pantalla = new Principal();
+        pantalla = new PantallaPrincipal();
         pantalla.setVisible(true);
         pantalla.setLocationRelativeTo(null);
     }

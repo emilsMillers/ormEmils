@@ -5,7 +5,7 @@
 package entidades;
 
 import jakarta.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 /**
  *
@@ -13,32 +13,50 @@ import java.util.Set;
  */
 
 @Entity
-@Table(name = "PELICULA")
+@Table(name = "pelicula")
 public class Pelicula {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "titulo", length = 50, nullable = false)
     private String titulo;
+
+    @Column(name = "director", length = 50, nullable = false)
     private String director;
+
+    @OneToMany(mappedBy = "pelicula", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pase> pases;
+
+    @OneToMany(mappedBy = "pelicula", cascade = CascadeType.ALL)
+    private List<Protagonista> protagonistas;
+
+    @Column(name = "genero", length = 20, nullable = false)
     private String genero;
+
+    @Column(name = "clasificacion", length = 20, nullable = false)
     private String clasificacion;
-    private String protagonista1;
-    private String protagonista2;
-    private String protagonista3;
 
-    @OneToMany(mappedBy = "pelicula")
-    private Set<Pase> pases;
+    @Override
+    public String toString() {
+        return titulo;
+    }
 
-    public Pelicula(String titulo, String director, String genero, String clasificacion, String protagonista1, String protagonista2, String protagonista3) {
+    public Pelicula() {
+    }
+
+    public Pelicula(int id, String titulo, String director, List<Pase> pases, List<Protagonista> protagonistas, String genero, String clasificacion) {
+        this.id = id;
         this.titulo = titulo;
         this.director = director;
+        this.pases = pases;
+        this.protagonistas = protagonistas;
         this.genero = genero;
         this.clasificacion = clasificacion;
-        this.protagonista1 = protagonista1;
-        this.protagonista2 = protagonista2;
-        this.protagonista3 = protagonista3;
     }
-    public Pelicula(){}
+
     public int getId() {
         return id;
     }
@@ -63,6 +81,22 @@ public class Pelicula {
         this.director = director;
     }
 
+    public List<Pase> getPases() {
+        return pases;
+    }
+
+    public void setPases(List<Pase> pases) {
+        this.pases = pases;
+    }
+
+    public List<Protagonista> getProtagonistas() {
+        return protagonistas;
+    }
+
+    public void setProtagonistas(List<Protagonista> protagonistas) {
+        this.protagonistas = protagonistas;
+    }
+
     public String getGenero() {
         return genero;
     }
@@ -79,38 +113,5 @@ public class Pelicula {
         this.clasificacion = clasificacion;
     }
 
-    public Set<Pase> getPases() {
-        return pases;
-    }
-
-    public void setPases(Set<Pase> pases) {
-        this.pases = pases;
-    }
-    
-    public String getProtagonista1() {
-        return protagonista1;
-    }
-
-    public void setProtagonista1(String protagonista1) {
-        this.protagonista1 = protagonista1;
-    }
-
-    public String getProtagonista2() {
-        return protagonista2;
-    }
-
-    public void setProtagonista2(String protagonista2) {
-        this.protagonista2 = protagonista2;
-    }
-
-    public String getProtagonista3() {
-        return protagonista3;
-    }
-
-    public void setProtagonista3(String protagonista3) {
-        this.protagonista3 = protagonista3;
-    }
-
-
-    
 }
+
